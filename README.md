@@ -241,7 +241,7 @@ Ta bibliothèque NestJS Pageable permet d'ajouter facilement la pagination à to
 L'auteur de ce guide est <a href="https://github.com/thiareMohamed">`THIARE`</a>, un développeur passionné de NestJS
 
 ## Licence
-Ce projet est sous licence MIT
+Ce projet est sous GPL-3.0 license
 ```
 
 ---
