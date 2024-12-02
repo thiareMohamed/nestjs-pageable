@@ -1,6 +1,6 @@
 {
   "name": "nestjs-pageable",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "NestJS Pageable",
   "author": "thiare",
   "private": false,
