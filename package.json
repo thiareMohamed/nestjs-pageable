@@ -1,9 +1,9 @@
 {
   "name": "nestjs-pageable",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
-  "private": true,
+  "description": "NestJS Pageable",
+  "author": "thiare",
+  "private": false,
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
