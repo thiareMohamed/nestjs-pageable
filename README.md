@@ -1,99 +1,250 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# NestJS Pageable
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Introduction
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+La bibliothèque **NestJS Pageable** est conçue pour faciliter l'implémentation de la pagination dans les projets NestJS, inspirée de l'interface `Pageable` de Spring. Elle prend en charge **TypeORM** et **Mongoose**, et fournit une approche simple et flexible pour la gestion de la pagination.
 
-## Description
+## Fonctionnalités
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- Support pour **TypeORM** et **Mongoose**.
+- Structure de réponse standardisée (`Page`).
+- Décorateur `@Pageable()` pour extraire les paramètres de pagination depuis les requêtes HTTP.
+- Design Pattern *Façade* pour simplifier l'usage.
+- Configuration minimale et personnalisable.
 
-## Project setup
+## Installation
+
+### Installation via npm
+
+Pour installer la bibliothèque, ajoute-la comme dépendance dans ton projet :
 
 ```bash
-$ npm install
+npm install nestjs-pageable
 ```
 
-## Compile and run the project
-
+### Dépendances
+Si tu utilises TypeORM ou Mongoose, assure-toi qu'ils sont installés dans ton projet
+  
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install @nestjs/typeorm typeorm
+npm install @nestjs/mongoose mongoose
 ```
 
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+## Structure des Dossiers
+La bibliothèque suit cette structure de fichiers :
+  
+  ```
+  src/
+├── decorators/                 # Décorateurs
+│   └── pageable.decorator.ts
+├── dto/                        # Objets de transfert de données
+│   ├── page.dto.ts
+│   ├── pageable.dto.ts
+├── interfaces/                 # Interfaces pour les stratégies
+│   └── pagination.interface.ts
+├── strategies/                 # Stratégies de pagination
+│   ├── typeorm.strategy.ts
+│   ├── mongoose.strategy.ts
+├── services/                   # Service principal (façade)
+│   └── pagination.facade.ts
+├── pagination.module.ts        # Module principal
 ```
 
-## Deployment
+### Mise en œuvre
+#### 1. Ajout du Module
+Ajoute le module de pagination dans ton module principal ou dans n'importe quel module de ton application :
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+```typescript
+import { Module } from '@nestjs/common';
+import { PaginationModule } from 'nestjs-pageable';
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g mau
-$ mau deploy
+@Module({
+  imports: [
+    PaginationModule,
+    // Autres modules
+  ],
+})
+export class AppModule {}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+#### 2. Utilisation avec TypeORM
 
-## Resources
+##### a. Service
+Dans ton service, utilise le PaginationFacade pour la pagination :
+  
+```typescript
+import { Injectable } from '@nestjs/common';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from './entities/user.entity';
+import { PaginationFacade } from 'nestjs-pageable';
+import { Page } from 'nestjs-pageable/dto/page.dto';
+import { PageableDto } from 'nestjs-pageable/dto/pageable.dto';
 
-Check out a few resources that may come in handy when working with NestJS:
+@Injectable()
+export class UserService {
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    private readonly paginationFacade: PaginationFacade,
+  ) {}
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+  async getUsers(pageable: PageableDto): Promise<Page<User>> {
+    return this.paginationFacade.paginate<User>(this.userRepository, pageable);
+  }
+}
+```
 
-## Support
+##### b. Contrôleur
+Dans ton contrôleur, utilise le décorateur `@Pageable()` :
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```typescript
+import { Controller, Get } from '@nestjs/common';
+import { UserService } from './user.service';
+import { Page } from 'nestjs-pageable/dto/page.dto';
+import { User } from './entities/user.entity';
+import { Pageable } from 'nestjs-pageable/decorators/pageable.decorator';
+import { PageableDto } from 'nestjs-pageable/dto/pageable.dto';
 
-## Stay in touch
+@Controller('users')
+export class UserController {
+  constructor(private readonly userService: UserService) {}
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+  @Get()
+  async findAll(@Pageable() pageable: PageableDto): Promise<Page<User>> {
+    return this.userService.getUsers(pageable);
+  }
+}
+```
+#### 3. Utilisation avec Mongoose
+##### a. Service
+Dans le cas de Mongoose, utilise un modèle Mongoose au lieu d'un repository TypeORM :
+  
+```typescript
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { User } from './schemas/user.schema'; // Exemple de schéma
+import { PaginationFacade } from 'nestjs-pageable';
+import { Page } from 'nestjs-pageable/dto/page.dto';
+import { PageableDto } from 'nestjs-pageable/dto/pageable.dto';
 
-## License
+@Injectable()
+export class UserService {
+  constructor(
+    @InjectModel(User.name) private readonly userModel: Model<User>,
+    private readonly paginationFacade: PaginationFacade,
+  ) {}
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+  async getUsers(pageable: PageableDto): Promise<Page<User>> {
+    return this.paginationFacade.paginate<User>(this.userModel, pageable, {
+      filter: {}, // Ajoute des filtres si nécessaire
+    });
+  }
+}
+```
+
+##### b. Contrôleur
+Le contrôleur avec Mongoose est identique à celui de TypeORM :
+  
+```typescript
+@Controller('users')
+export class UserController {
+  constructor(private readonly userService: UserService) {}
+
+  @Get()
+  async findAll(@Pageable() pageable: PageableDto): Promise<Page<User>> {
+    return this.userService.getUsers(pageable);
+  }
+}
+```
+
+## Requête et Résultat
+### Requête GET
+Voici un exemple de requête HTTP avec les paramètres de pagination :
+  
+```json
+{
+"data": [
+  { "id": 1, "name": "Alice" },
+  { "id": 2, "name": "Bob" }
+],
+"totalElements": 50,
+"currentPage": 1,
+"size": 10,
+"totalPages": 5
+}
+```
+
+## Personnalisation
+### Filtrage Avancé
+#### TypeORM
+Tu peux ajouter des filtres personnalisés ou des requêtes supplémentaires en utilisant la méthode `paginate` :
+
+```typescript
+this.paginationFacade.paginate<User>(this.userRepository, pageable, {
+  alias: 'user',
+  customQuery: (qb) => qb.where('user.isActive = :isActive', { isActive: true }),
+});
+```
+
+#### Mongoose
+Pour Mongoose, tu peux ajouter des filtres personnalisés ou des requêtes supplémentaires en utilisant la méthode `paginate` :
+
+```typescript
+this.paginationFacade.paginate<User>(this.userModel, pageable, {
+  filter: { isActive: true },
+  projection: { name: 1, email: 1 },
+});
+```
+## Tests Unitaires
+Pour tester ton contrôleur et service, tu peux simuler les appels à la pagination.
+
+### Mock PaginationFacade
+```typescript
+const mockPaginationFacade = {
+  paginate: jest.fn().mockResolvedValue(new Page([], 0, 1, 10)),
+};
+```
+
+#### Exemple de Test
+```typescript
+describe('UserController', () => {
+  let controller: UserController;
+  let service: UserService;
+
+  beforeEach(async () => {
+    const module = await Test.createTestingModule({
+      controllers: [UserController],
+      providers: [
+        UserService,
+        { provide: PaginationFacade, useValue: mockPaginationFacade },
+      ],
+    }).compile();
+
+    controller = module.get<UserController>(UserController);
+    service = module.get<UserService>(UserService);
+  });
+
+  it('should return paginated users', async () => {
+    const result = await controller.findAll({ page: 1, size: 10 });
+    expect(result).toEqual(new Page([], 0, 1, 10));
+    expect(mockPaginationFacade.paginate).toHaveBeenCalled();
+  });
+});
+```
+
+## Conclusion
+Ta bibliothèque NestJS Pageable permet d'ajouter facilement la pagination à ton projet NestJS. Elle est conçue pour fonctionner à la fois avec TypeORM et Mongoose, et son design est basé sur le pattern Façade pour rendre l'utilisation simple et efficace.
+
+## Auteur
+L'auteur de ce guide est [ton nom], un développeur passionné de NestJS
+
+## Licence
+Ce projet est sous licence MIT
+```
+
+---
+
+Ce fichier `README.md` contient toute la documentation nécessaire pour comprendre, installer, et utiliser la bibliothèque **NestJS Pageable** dans un projet.
+```
