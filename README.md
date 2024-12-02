@@ -238,7 +238,7 @@ describe('UserController', () => {
 Ta bibliothèque NestJS Pageable permet d'ajouter facilement la pagination à ton projet NestJS. Elle est conçue pour fonctionner à la fois avec TypeORM et Mongoose, et son design est basé sur le pattern Façade pour rendre l'utilisation simple et efficace.
 
 ## Auteur
-L'auteur de ce guide est `thiare`, un développeur passionné de NestJS
+L'auteur de ce guide est <a href="https://github.com/thiareMohamed">`THIARE`</a>, un développeur passionné de NestJS
 
 ## Licence
 Ce projet est sous licence MIT
